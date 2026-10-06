@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b5a32" />
+  <title>Junior Pinelands Playbook</title>
+  <meta name="description" content="Wildcat football playbook and defensive-front training." />
+  <style>
+    :root{
+      --green:#0b5a32;--green2:#083f25;--gold:#f3c64e;--cream:#fffaf0;
+      --ink:#102018;--muted:#66756d;--card:#ffffff;--line:#dfe8e2;
+      --good:#157347;--bad:#b42318;--shadow:0 14px 34px rgba(6,40,22,.14);
+      --r:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);background:
+      radial-gradient(circle at 15% 0%,rgba(243,198,78,.20),transparent 28%),
+      linear-gradient(180deg,#edf7f0 0,#f9fbf9 44%,#f4f6f4 100%);
+      min-height:100vh;
+    }
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    .shell{max-width:1100px;margin:0 auto;padding:18px 16px 48px}
+    .hero{
+      position:relative;overflow:hidden;border-radius:28px;padding:26px;
+      color:white;background:linear-gradient(135deg,var(--green2),var(--green));
+      box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.12)
+    }
+    .hero:after{
+      content:"";position:absolute;right:-70px;top:-80px;width:260px;height:260px;
+      border-radius:50%;background:rgba(243,198,78,.12);border:35px solid rgba(243,198,78,.08)
+    }
+    .brand{display:flex;align-items:center;gap:16px;position:relative;z-index:1}
+    .mark{
+      width:76px;height:76px;flex:0 0 76px;border-radius:20px;background:var(--gold);
+      color:var(--green2);display:grid;place-items:center;font-weight:1000;font-size:34px;
+      box-shadow:inset 0 0 0 3px rgba(11,90,50,.18)
+    }
+    .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:900;color:#ffe79d}
+    h1{font-size:clamp(28px,5vw,54px);margin:4px 0 6px;line-height:.96;letter-spacing:-.035em}
+    .motto{margin:0;font-weight:800;font-size:16px;opacity:.94}
+    .hero-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:22px;align-items:end;position:relative;z-index:1}
+    .hero-note{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:15px}
+    .hero-note b{color:#ffe79d}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 9px 28px rgba(11,90,50,.08);padding:22px}
+    .card h2,.card h3{margin-top:0}
+    .sub{color:var(--muted);line-height:1.5}
+    label{display:block;font-size:13px;font-weight:850;margin:15px 0 7px}
+    input[type=text]{
+      width:100%;padding:14px 15px;border-radius:14px;border:1px solid #cddbd2;outline:none;background:#fff
+    }
+    input[type=text]:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(11,90,50,.12)}
+    details.multi{border:1px solid #cddbd2;border-radius:14px;background:#fff}
+    details.multi summary{list-style:none;padding:13px 15px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+    details.multi summary::-webkit-details-marker{display:none}
+    .checks{padding:0 12px 12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .check{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fafcfb;font-weight:750;font-size:13px}
+    .check input{margin-right:6px}
+    .btn{
+      border:0;border-radius:14px;padding:13px 16px;font-weight:900;background:var(--green);color:#fff;
+      box-shadow:0 8px 18px rgba(11,90,50,.18)
+    }
+    .btn.gold{background:var(--gold);color:#17361f}
+    .btn.ghost{background:#eef5f0;color:var(--green2);box-shadow:none}
+    .btn.danger{background:#fff0ef;color:#9f1c14;box-shadow:none}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .hidden{display:none!important}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .stat{border-radius:16px;background:#f7faf8;border:1px solid var(--line);padding:13px}
+    .stat small{display:block;color:var(--muted);font-weight:800}
+    .stat strong{font-size:22px}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:#edf6ef;border:1px solid #d4e7d9;color:#19462c;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:850}
+    .mode{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .mode button{border:1px solid var(--line);background:#fff;border-radius:13px;padding:12px 8px;font-weight:850;color:#284637}
+    .mode button.active{background:var(--green);color:#fff;border-color:var(--green)}
+    .question{margin-top:18px}
+    .qtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .qtype{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:950;color:var(--green)}
+    .qtitle{font-size:clamp(22px,4vw,34px);line-height:1.08;margin:6px 0}
+    .scenario{background:#f7faf8;border:1px solid var(--line);border-radius:15px;padding:14px;line-height:1.5;margin:14px 0}
+    .answers{display:grid;gap:9px}
+    .answer{width:100%;text-align:left;border:1px solid #cfddd3;background:#fff;border-radius:14px;padding:13px 14px;font-weight:800}
+    .answer:hover{border-color:#91b99f;background:#f7fbf8}
+    .answer.correct{background:#eaf7ef;border-color:#5aa879;color:#0d5a31}
+    .answer.wrong{background:#fff0ef;border-color:#e39d96;color:#9e2119}
+    .feedback{margin-top:12px;padding:12px 14px;border-radius:13px;font-weight:800}
+    .feedback.good{background:#eaf7ef;color:#0d5a31}
+    .feedback.bad{background:#fff0ef;color:#9e2119}
+    .progress{height:10px;border-radius:99px;background:#e6ece8;overflow:hidden}
+    .progress > span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold));width:0}
+    .tiny{font-size:12px;color:var(--muted)}
+    .list{display:grid;gap:8px;max-height:310px;overflow:auto;padding-right:3px}
+    .playrow{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fcfdfc}
+    .playrow small{color:var(--muted)}
+    .footer{margin-top:24px;text-align:center;color:#718078;font-size:12px;line-height:1.5}
+    .paw{font-size:24px}
+    .celebrate{animation:pop .35s ease}
+    @keyframes pop{50%{transform:scale(1.025)}}
+    @media(max-width:780px){
+      .hero-grid,.grid{grid-template-columns:1fr}
+      .hero-note{display:none}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .checks{grid-template-columns:repeat(2,1fr)}
+      .mode{grid-template-columns:1fr}
+      .brand{align-items:flex-start}
+      .mark{width:62px;height:62px;flex-basis:62px;font-size:28px}
+      .card{padding:17px}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="brand">
+          <div class="mark" aria-label="Wildcat mark">W</div>
+          <div>
+            <div class="eyebrow">Pinelands Football Training</div>
+            <h1>Junior Pinelands Playbook</h1>
+            <p class="motto">Once a Wildcat • Always a Wildcat</p>
+          </div>
+        </div>
+        <div class="hero-note">
+          <b>Wildcat Standard</b><br/>
+          Know your assignment. Read the front. Win with leverage, feet, hands and effort.
+        </div>
+      </div>
+    </section>
+
+    <section id="setup" class="grid">
+      <div class="card">
+        <h2>Player Check-In</h2>
+        <p class="sub">Use your name, nickname, screen name or codename. Pick every position you want to train.</p>
+        <label for="playerName">Player name / codename</label>
+        <input id="playerName" type="text" maxlength="28" placeholder="Example: Richie / Big R / Wildcat 74" autocomplete="off"/>
+        <label>Positions</label>
+        <details class="multi">
+          <summary><span id="posSummary">Select positions</span><span>▾</span></summary>
+          <div id="positionChecks" class="checks"></div>
+        </details>
+        <label>Training mode</label>
+        <div class="mode" id="setupModes">
+          <button data-mode="mixed" class="active">Mixed Training</button>
+          <button data-mode="playbook">Playbook Recall</button>
+          <button data-mode="fronts">Front Lab</button>
+        </div>
+        <div style="height:14px"></div>
+        <button id="startBtn" class="btn gold" style="width:100%">Enter the Wildcat Lab</button>
+        <p class="tiny">Profiles and progress save on this device. No password or personal information is required.</p>
+      </div>
+
+      <div class="card">
+        <h2>What this version trains</h2>
+        <div class="list">
+          <div class="playrow"><div><b>Playbook Rotation</b><br><small>Cycles through the verified play names instead of repeating only a few.</small></div><span>📋</span></div>
+          <div class="playrow"><div><b>Defensive Fronts</b><br><small>Head-up, inside shade, outside shade, wide defender, uncovered and linebacker threats.</small></div><span>🧠</span></div>
+          <div class="playrow"><div><b>OL Technique</b><br><small>Short first step, low pads, hands inside, hips through, active feet, pulls, traps and climbs.</small></div><span>💪</span></div>
+          <div class="playrow"><div><b>Wildcat Progress</b><br><small>XP, streaks, shields, coverage and position-by-position reps.</small></div><span>🐾</span></div>
+        </div>
+        <p class="tiny" style="margin-top:14px">Exact play assignments are intentionally not invented. The app is ready for the verified assignment matrix to be added from the team playbook.</p>
+      </div>
+    </section>
+
+    <section id="game" class="hidden">
+      <div class="grid">
+        <div class="card">
+          <div class="row" style="justify-content:space-between">
+            <div>
+              <div class="eyebrow" style="color:var(--green)">Wildcat Profile</div>
+              <h2 id="welcome" style="margin:4px 0 8px"></h2>
+              <div id="playerPositions" class="row"></div>
+            </div>
+            <button id="changePlayer" class="btn ghost">Change Player</button>
+          </div>
+          <div class="stats" style="margin-top:16px">
+            <div class="stat"><small>XP</small><strong id="xp">0</strong></div>
+            <div class="stat"><small>Streak</small><strong id="streak">🔥 0</strong></div>
+            <div class="stat"><small>Shield</small><strong id="shield">🛡️ 0</strong></div>
+            <div class="stat"><small>Play Coverage</small><strong id="coverage">0%</strong></div>
+          </div>
+          <div style="margin-top:12px">
+            <div class="row" style="justify-content:space-between"><span class="tiny">Next shield</span><span id="shieldText" class="tiny">0 / 25</span></div>
+            <div class="progress"><span id="shieldBar"></span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Training Mode</h3>
+          <div class="mode" id="gameModes">
+            <button data-mode="mixed">Mixed Training</button>
+            <button data-mode="playbook">Playbook Recall</button>
+            <button data-mode="fronts">Front Lab</button>
+          </div>
+          <div style="height:14px"></div>
+          <div class="row">
+            <span class="pill">🐾 Wildcat Rep</span>
+            <span id="repCount" class="pill">Rep 1</span>
+            <span id="positionPill" class="pill">RG</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card question" id="questionCard">
+        <div class="qtop">
+          <div>
+            <div id="qType" class="qtype">Front Lab</div>
+            <div id="qTitle" class="qtitle"></div>
+          </div>
+          <div class="paw">🐾</div>
+        </div>
+        <div id="scenario" class="scenario"></div>
+        <div id="answers" class="answers"></div>
+        <div id="feedback"></div>
+        <div class="row" style="margin-top:14px">
+          <button id="nextBtn" class="btn hidden">Next Rep</button>
+          <button id="showHint" class="btn ghost">Technique Cue</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Playbook Coverage</h3>
+          <p class="sub">The deck rotates through all loaded plays before reshuffling.</p>
+          <div id="coverageList" class="list"></div>
+        </div>
+        <div class="card">
+          <h3>Wildcat Coaching Cues</h3>
+          <div class="list">
+            <div class="playrow"><b>Don’t run to the defender. Step to him.</b><span>1️⃣</span></div>
+            <div class="playrow"><b>Low pads • hands inside • feet alive.</b><span>2️⃣</span></div>
+            <div class="playrow"><b>Bring the hips through as the arms extend.</b><span>3️⃣</span></div>
+            <div class="playrow"><b>Secure first responsibility before climbing.</b><span>4️⃣</span></div>
+            <div class="playrow"><b>On pulls/traps: stay low, eyes up, stay on the path.</b><span>5️⃣</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Wildcat-inspired football learning tool for player development. This site is not an official Pinelands Regional School District publication.<br/>
+      School identity references are used for team-pride training; exact football assignments should always match the current coach-issued playbook.
+    </div>
+  </main>
+
+<script>
+const POSITIONS = [
+  ["LT","Left Tackle"],["LG","Left Guard"],["C","Center"],["RG","Right Guard"],["RT","Right Tackle"],["TE","Tight End"],
+  ["QB","Quarterback"],["RB","Running Back"],["WR","Wide Receiver"],["DT","Defensive Tackle"],["DE","Defensive End"],["LB","Linebacker"]
+];
+
+const PLAYS = [
+  "Alabama Sprint Pass","Alabama 38 Counter","Alabama Sweep","Auburn Sprint Pass","Auburn 27 Counter","Auburn Sweep",
+  "Alabama Split Wide 38 Counter","Alabama Split Wide Sprint Pass","Alabama Split Wide 17 Sweep",
+  "Auburn Split Wide 27 Counter","Auburn Split Wide 18 Sweep","BASE Sprint Right Pass","Wing Back Over 38 Sweep",
+  "Trips Right 52 Bomb","Trips Right Split Wide 12 Trap","Trips Left 17 Sprint","BASE Wing JET Motion Rocket",
+  "BASE H Back Motion 37 Sweep","BASE Motion 26 Option","WB Over Sprint Pass Left","WB Over H Motion Option",
+  "Wing Back Over JET Motion Rocket","Trips Right 18 Sprint","Trips Right Split Right ZAG Pass",
+  "Trips Right Split Wide 46 Reverse","Trips Right Split Wide ZAG Pass","Trips Left Split Wide Right TE Go"
+];
+
+const FRONTS = ["head-up","inside shade","outside shade","wide outside","uncovered with an inside linebacker threat","uncovered with an outside linebacker threat"];
+const OL = new Set(["LT","LG","C","RG","RT","TE"]);
+const DL = new Set(["DT","DE"]);
+
+const FRONT_QUESTIONS = [
+  {
+    applies:p=>OL.has(p),
+    make:(p,f,play)=>({
+      title: play + " — " + p,
+      scenario:"The defender is " + f + ". On a normal base/drive-block situation, what technique gives you the best chance to stay square and keep leverage?",
+      choices:[
+        "Use a short controlled step toward the threat, stay low, get hands inside and keep the feet driving.",
+        "Take the biggest first step possible and reach with your shoulders.",
+        "Stand up and wait for the defender to make contact.",
+        "Turn sideways immediately and stop your feet."
+      ],correct:0,
+      cue:"Short step. Low pads. Hands inside. Feet then hips. Do not lunge."
+    })
+  },
+  {
+    applies:p=>OL.has(p),
+    make:(p,f,play)=>({
+      title: play + " — " + p,
+      scenario:"You make good first contact, but the defender is still fighting through you. What should happen next?",
+      choices:[
+        "Stop your feet and rely on arm strength.",
+        "Keep the feet churning and bring the hips through as the arms extend.",
+        "Lean your helmet forward and lock your knees.",
+        "Release immediately to the linebacker."
+      ],correct:1,
+      cue:"The power sequence is contact → feet alive → hips through → controlled extension."
+    })
+  },
+  {
+    applies:p=>["LG","RG","C","LT","RT"].includes(p),
+    make:(p,f,play)=>({
+      title: play + " — " + p,
+      scenario:"You are working with the adjacent lineman on a down defender and a linebacker is stacked behind him. When is it safe to climb?",
+      choices:[
+        "The instant your hand touches the down lineman.",
+        "Before the snap if the linebacker looks fast.",
+        "Only after the down lineman is secured enough that leaving will not free him into the play.",
+        "Never; stay on the first defender for the entire play."
+      ],correct:2,
+      cue:"First responsibility first. Secure the down lineman, then climb under control."
+    })
+  },
+  {
+    applies:p=>["LG","RG","LT","RT","TE"].includes(p),
+    make:(p,f,play)=>({
+      title: play + " — " + p,
+      scenario:"The assignment calls for a pull/trap path. What is the biggest mistake?",
+      choices:[
+        "Staying low with your eyes up.",
+        "Clearing the line cleanly.",
+        "Adjusting under control to a moving target.",
+        "Turning it into a normal straight-ahead drive block and abandoning the pull/trap path."
+      ],correct:3,
+      cue:"Pull/trap is different from a base block: clear the line, stay low, eyes up, find the target."
+    })
+  },
+  {
+    applies:p=>DL.has(p),
+    make:(p,f,play)=>({
+      title:"Defensive Front Lab — " + p,
+      scenario:"The offense fires out low and tries to move you off your gap. What keeps you strongest?",
+      choices:[
+        "Rise up tall so you can see the ball.",
+        "Stay low, strike with inside hands, control the blocker and protect your gap.",
+        "Turn your shoulders immediately and run around the block.",
+        "Guess where the ball is going before reading the block."
+      ],correct:1,
+      cue:"Low pads, violent hands, gap integrity, then pursue."
+    })
+  },
+  {
+    applies:p=>p==="LB",
+    make:(p,f,play)=>({
+      title:"Linebacker Front Lab",
+      scenario:"A guard climbs toward you after helping on a down lineman. What gives you the best chance to defeat the second-level block?",
+      choices:[
+        "Stay flat-footed and wait.",
+        "Attack with good leverage, keep vision on the ball and use your hands to stay clean.",
+        "Turn your back to the blocker.",
+        "Run directly into the blocker’s chest upright."
+      ],correct:1,
+      cue:"Read, fit, use hands, keep leverage and stay square."
+    })
+  }
+];
+
+let state = {
+  name:"", positions:[], mode:"mixed", xp:0, streak:0, shields:0, shieldProgress:0,
+  reps:0, playDeck:[], playIndex:0, seenPlays:{}, current:null
+};
+
+function key(){ return "jpp_profile_"+state.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_"); }
+function save(){ localStorage.setItem(key(), JSON.stringify(state)); }
+function loadProfile(name){
+  const k="jpp_profile_"+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_");
+  try{return JSON.parse(localStorage.getItem(k)||"null")}catch{return null}
+}
+function shuffle(a){
+  const b=[...a];
+  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}
+  return b;
+}
+function buildPositions(){
+  const host=document.getElementById("positionChecks");
+  host.innerHTML="";
+  POSITIONS.forEach(([code,label])=>{
+    const d=document.createElement("label");d.className="check";
+    d.innerHTML='<input type="checkbox" value="'+code+'"> '+code+' — '+label;
+    d.querySelector("input").addEventListener("change",updatePosSummary);
+    host.appendChild(d);
+  });
+}
+function updatePosSummary(){
+  const vals=[...document.querySelectorAll("#positionChecks input:checked")].map(x=>x.value);
+  document.getElementById("posSummary").textContent=vals.length?vals.join(", "):"Select positions";
+}
+function setModeButtons(container, mode){
+  document.querySelectorAll("#"+container+" [data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-mode]"); if(!b)return;
+  state.mode=b.dataset.mode;
+  setModeButtons(b.parentElement.id,state.mode);
+  if(b.parentElement.id==="gameModes"){save();nextQuestion();}
+});
+
+function start(){
+  const name=document.getElementById("playerName").value.trim();
+  const pos=[...document.querySelectorAll("#positionChecks input:checked")].map(x=>x.value);
+  if(!name){alert("Enter a player name or codename first.");return}
+  if(!pos.length){alert("Select at least one position.");return}
+  const prior=loadProfile(name);
+  if(prior){
+    state={...state,...prior,positions:pos,mode:state.mode};
+  }else{
+    state.name=name;state.positions=pos;state.playDeck=shuffle(PLAYS);state.playIndex=0;
+  }
+  if(!state.playDeck||!state.playDeck.length){state.playDeck=shuffle(PLAYS);state.playIndex=0}
+  save();showGame();nextQuestion();
+}
+function showGame(){
+  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("welcome").textContent=state.name;
+  document.getElementById("playerPositions").innerHTML=state.positions.map(p=>'<span class="pill">'+p+'</span>').join("");
+  setModeButtons("gameModes",state.mode);updateStats();renderCoverage();
+}
+function changePlayer(){
+  save();document.getElementById("game").classList.add("hidden");document.getElementById("setup").classList.remove("hidden");
+}
+function nextPlay(){
+  if(state.playIndex>=state.playDeck.length){state.playDeck=shuffle(PLAYS);state.playIndex=0}
+  const p=state.playDeck[state.playIndex++];
+  state.seenPlays[p]=(state.seenPlays[p]||0)+1;
+  return p;
+}
+function pickPosition(){return state.positions[state.reps % state.positions.length]}
+function nextQuestion(){
+  state.reps++;
+  const position=pickPosition();
+  const play=nextPlay();
+  const front=FRONTS[Math.floor(Math.random()*FRONTS.length)];
+  let type=state.mode;
+  if(type==="mixed") type=(state.reps%3===0)?"playbook":"fronts";
+  document.getElementById("repCount").textContent="Rep "+state.reps;
+  document.getElementById("positionPill").textContent=position;
+  document.getElementById("feedback").innerHTML="";
+  document.getElementById("nextBtn").classList.add("hidden");
+  document.getElementById("showHint").classList.remove("hidden");
+
+  if(type==="playbook"){
+    state.current={kind:"recall",play,position,front,cue:"Say the assignment out loud first. Then check it against the current coach-issued playbook. Do not guess from the play name alone."};
+    document.getElementById("qType").textContent="Playbook Recall";
+    document.getElementById("qTitle").textContent=play+" — "+position;
+    document.getElementById("scenario").innerHTML="<b>Assignment recall:</b> Before tapping anything, say your "+position+" responsibility on <b>"+play+"</b> out loud. Then rate your recall honestly.";
+    document.getElementById("answers").innerHTML=
+      '<button class="answer" data-recall="know">✅ I knew my assignment</button>'+
+      '<button class="answer" data-recall="review">📘 I need to review this play</button>';
+    document.querySelectorAll("[data-recall]").forEach(b=>b.onclick=()=>gradeRecall(b.dataset.recall));
+  }else{
+    const eligible=FRONT_QUESTIONS.filter(q=>q.applies(position));
+    const q=(eligible.length?eligible:FRONT_QUESTIONS.filter(x=>x.applies("RG")))[Math.floor(Math.random()*(eligible.length||4))].make(position,front,play);
+    const indexed=q.choices.map((text,i)=>({text,i}));
+    const shuffled=shuffle(indexed);
+    const correctDisplay=shuffled.findIndex(x=>x.i===q.correct);
+    state.current={kind:"mc",play,position,front,cue:q.cue,correct:correctDisplay};
+    document.getElementById("qType").textContent="Defensive Front Lab";
+    document.getElementById("qTitle").textContent=q.title;
+    document.getElementById("scenario").textContent=q.scenario;
+    document.getElementById("answers").innerHTML=shuffled.map((x,i)=>'<button class="answer" data-answer="'+i+'">'+String.fromCharCode(65+i)+') '+x.text+'</button>').join("");
+    document.querySelectorAll("[data-answer]").forEach(b=>b.onclick=()=>gradeMC(Number(b.dataset.answer)));
+  }
+  save();updateStats();renderCoverage();
+}
+function gradeRecall(v){
+  document.querySelectorAll("[data-recall]").forEach(b=>b.disabled=true);
+  if(v==="know"){
+    reward(true);
+    feedback("good","✅ Good rep. Now verify that memory against the current team playbook whenever a coach changes an assignment.");
+  }else{
+    state.streak=0;save();updateStats();
+    feedback("bad","📘 Marked for review. This is exactly what the trainer is for — find the coach-issued assignment, study it, then hit this play again later.");
+  }
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+function gradeMC(i){
+  const buttons=[...document.querySelectorAll("[data-answer]")];
+  buttons.forEach(b=>b.disabled=true);
+  const ok=i===state.current.correct;
+  buttons[state.current.correct].classList.add("correct");
+  if(!ok)buttons[i].classList.add("wrong");
+  reward(ok);
+  feedback(ok?"good":"bad",ok?"✅ Correct. Wildcat rep won.":"❌ Not this one. "+(state.shields>0?"A shield may protect the streak. ":"Review the cue and win the next rep."));
+  document.getElementById("nextBtn").classList.remove("hidden");
+}
+function reward(ok){
+  if(ok){
+    state.xp+=10;state.streak++;state.shieldProgress++;
+    if(state.shieldProgress>=25){state.shields++;state.shieldProgress=0}
+    document.getElementById("questionCard").classList.remove("celebrate");void document.getElementById("questionCard").offsetWidth;document.getElementById("questionCard").classList.add("celebrate");
+  }else{
+    if(state.shields>0){state.shields--}else{state.streak=0}
+  }
+  save();updateStats();
+}
+function feedback(cls,msg){document.getElementById("feedback").innerHTML='<div class="feedback '+cls+'">'+msg+'</div>'}
+function updateStats(){
+  document.getElementById("xp").textContent=state.xp.toLocaleString();
+  document.getElementById("streak").textContent="🔥 "+state.streak;
+  document.getElementById("shield").textContent="🛡️ "+state.shields;
+  const covered=Object.keys(state.seenPlays||{}).length;
+  document.getElementById("coverage").textContent=Math.round(covered/PLAYS.length*100)+"%";
+  document.getElementById("shieldText").textContent=state.shieldProgress+" / 25";
+  document.getElementById("shieldBar").style.width=(state.shieldProgress/25*100)+"%";
+}
+function renderCoverage(){
+  const host=document.getElementById("coverageList");
+  host.innerHTML=PLAYS.map(p=>{
+    const n=state.seenPlays[p]||0;
+    return '<div class="playrow"><div><b>'+p+'</b><br><small>'+(n?"Seen "+n+" time"+(n===1?"":"s"):"Not yet seen")+'</small></div><span>'+(n?"✅":"○")+'</span></div>'
+  }).join("");
+}
+document.getElementById("showHint").onclick=()=>{
+  if(!state.current)return;
+  feedback("good","🏈 Technique cue: "+state.current.cue);
+};
+document.getElementById("nextBtn").onclick=nextQuestion;
+document.getElementById("startBtn").onclick=start;
+document.getElementById("changePlayer").onclick=changePlayer;
+buildPositions();
+</script>
+</body>
+</html>
