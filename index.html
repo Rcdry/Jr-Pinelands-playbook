@@ -53,7 +53,7 @@
     input[type=text]{
       width:100%;padding:14px 15px;border-radius:14px;border:1px solid #cddbd2;outline:none;background:#fff
     }
-    input[type=text]:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(11,90,50,.12)}
+    input[type=text]:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(11,90,50,.12)}\n    textarea{width:100%;min-height:110px;padding:14px 15px;border-radius:14px;border:1px solid #cddbd2;outline:none;background:#fff;resize:vertical;font:inherit}\n    textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(11,90,50,.12)}
     details.multi{border:1px solid #cddbd2;border-radius:14px;background:#fff}
     details.multi summary{list-style:none;padding:13px 15px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
     details.multi summary::-webkit-details-marker{display:none}
@@ -159,7 +159,7 @@
           <div class="playrow"><div><b>Playbook Rotation</b><br><small>Cycles through the verified play names instead of repeating only a few.</small></div><span>📋</span></div>
           <div class="playrow"><div><b>Defensive Fronts</b><br><small>Head-up, inside shade, outside shade, wide defender, uncovered and linebacker threats.</small></div><span>🧠</span></div>
           <div class="playrow"><div><b>OL Technique</b><br><small>Short first step, low pads, hands inside, hips through, active feet, pulls, traps and climbs.</small></div><span>💪</span></div>
-          <div class="playrow"><div><b>Wildcat Progress</b><br><small>XP, streaks, shields, coverage and position-by-position reps.</small></div><span>🐾</span></div>
+          <div class="playrow"><div><b>Wildcat Progress</b><br><small>XP, streaks, active shield protection, coverage and position-by-position reps.</small></div><span>🐾</span></div>
         </div>
         <p class="tiny" style="margin-top:14px">Exact play assignments are intentionally not invented. The app is ready for the verified assignment matrix to be added from the team playbook.</p>
       </div>
@@ -438,14 +438,20 @@ function nextQuestion(){
   document.getElementById("showHint").classList.remove("hidden");
 
   if(type==="playbook"){
-    state.current={kind:"recall",play,position,front,cue:"Say the assignment out loud first. Then check it against the current coach-issued playbook. Do not guess from the play name alone."};
-    document.getElementById("qType").textContent="Playbook Recall";
+    const recallPrompts=[
+      "What is your "+position+" responsibility on this play?",
+      "Walk through the "+position+" assignment from the snap through the finish. Who or what is your first responsibility?",
+      "If the defense lines up differently, what part of the "+position+" assignment stays the same on this play?"
+    ];
+    const prompt=recallPrompts[Math.floor(Math.random()*recallPrompts.length)];
+    state.current={kind:"recall",play,position,front,cue:"Answer from memory first. The exact assignment must match the current coach-issued playbook; the site will not invent a missing assignment."};
+    document.getElementById("qType").textContent="Playbook Recall Challenge";
     document.getElementById("qTitle").textContent=play+" — "+position;
-    document.getElementById("scenario").innerHTML="<b>Assignment recall:</b> Before tapping anything, say your "+position+" responsibility on <b>"+play+"</b> out loud. Then rate your recall honestly.";
+    document.getElementById("scenario").innerHTML="<b>"+prompt+"</b><br><span class='tiny'>Type the assignment in your own words before checking yourself.</span>";
     document.getElementById("answers").innerHTML=
-      '<button class="answer" data-recall="know">✅ I knew my assignment</button>'+
-      '<button class="answer" data-recall="review">📘 I need to review this play</button>';
-    document.querySelectorAll("[data-recall]").forEach(b=>b.onclick=()=>gradeRecall(b.dataset.recall));
+      '<textarea id="recallAnswer" placeholder="Type your '+position+' assignment here..."></textarea>'+
+      '<button class="answer" id="lockRecall">🔒 Lock in my answer</button>';
+    document.getElementById("lockRecall").onclick=lockRecallAnswer;
   }else{
     const eligible=FRONT_QUESTIONS.filter(q=>q.applies(position));
     const q=(eligible.length?eligible:FRONT_QUESTIONS.filter(x=>x.applies("RG")))[Math.floor(Math.random()*(eligible.length||4))].make(position,front,play);
@@ -461,14 +467,29 @@ function nextQuestion(){
   }
   save();updateStats();renderCoverage();
 }
+function lockRecallAnswer(){
+  const box=document.getElementById("recallAnswer");
+  const answer=(box?.value||"").trim();
+  if(!answer){feedback("bad","Type your assignment first — make yourself retrieve it from memory.");return}
+  if(box)box.disabled=true;
+  const lock=document.getElementById("lockRecall"); if(lock)lock.disabled=true;
+  document.getElementById("answers").insertAdjacentHTML("beforeend",
+    '<div class="scenario"><b>Your locked answer:</b><br>'+escapeHtml(answer)+'</div>'+
+    '<button class="answer" data-recall="correct">✅ Matches the coach-issued assignment</button>'+
+    '<button class="answer" data-recall="review">📘 Not quite — I need to review it</button>');
+  document.querySelectorAll("[data-recall]").forEach(b=>b.onclick=()=>gradeRecall(b.dataset.recall));
+  feedback("good","Now compare what you typed with the current playbook. The trainer will only award the rep if you confirm it matches.");
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\\\"":"&quot;","'":"&#039;"}[m]))}
 function gradeRecall(v){
   document.querySelectorAll("[data-recall]").forEach(b=>b.disabled=true);
-  if(v==="know"){
+  if(v==="correct"){
     reward(true);
-    feedback("good","✅ Good rep. Now verify that memory against the current team playbook whenever a coach changes an assignment.");
+    feedback("good","✅ Assignment recall won. You had to produce the answer before getting credit.");
   }else{
-    state.streak=0;save();updateStats();
-    feedback("bad","📘 Marked for review. This is exactly what the trainer is for — find the coach-issued assignment, study it, then hit this play again later.");
+    const hadShield=state.shields>0;
+    reward(false);
+    feedback("bad",hadShield?"🛡️ Review rep. Your shield was consumed and your streak was saved.":"📘 Marked for review. Study the coach-issued assignment and win it next time.");
   }
   document.getElementById("nextBtn").classList.remove("hidden");
 }
@@ -476,16 +497,22 @@ function gradeMC(i){
   const buttons=[...document.querySelectorAll("[data-answer]")];
   buttons.forEach(b=>b.disabled=true);
   const ok=i===state.current.correct;
+  const hadShield=state.shields>0;
   buttons[state.current.correct].classList.add("correct");
   if(!ok)buttons[i].classList.add("wrong");
   reward(ok);
-  feedback(ok?"good":"bad",ok?"✅ Correct. Wildcat rep won.":"❌ Not this one. "+(state.shields>0?"A shield may protect the streak. ":"Review the cue and win the next rep."));
+  feedback(ok?"good":"bad",
+    ok?"✅ Correct. Wildcat rep won.":
+    hadShield?"🛡️ Wrong answer — shield activated! The shield was consumed and your streak stays alive.":
+    "❌ Wrong answer. No shield available, so the streak resets. Review the cue and win the next rep.");
   document.getElementById("nextBtn").classList.remove("hidden");
 }
 function reward(ok){
   if(ok){
-    state.xp+=10;state.streak++;state.shieldProgress++;
-    if(state.shieldProgress>=25){state.shields++;state.shieldProgress=0}
+    state.xp+=10;state.streak++;
+    if(state.shields<1){
+      state.shieldProgress++;
+      if(state.shieldProgress>=25){state.shields=1;state.shieldProgress=0}
     document.getElementById("questionCard").classList.remove("celebrate");void document.getElementById("questionCard").offsetWidth;document.getElementById("questionCard").classList.add("celebrate");
   }else{
     if(state.shields>0){state.shields--}else{state.streak=0}
@@ -499,8 +526,8 @@ function updateStats(){
   document.getElementById("shield").textContent="🛡️ "+state.shields;
   const covered=Object.keys(state.seenPlays||{}).length;
   document.getElementById("coverage").textContent=Math.round(covered/PLAYS.length*100)+"%";
-  document.getElementById("shieldText").textContent=state.shieldProgress+" / 25";
-  document.getElementById("shieldBar").style.width=(state.shieldProgress/25*100)+"%";
+  document.getElementById("shieldText").textContent=state.shields>0?"READY — protects one miss":state.shieldProgress+" / 25";
+  document.getElementById("shieldBar").style.width=(state.shields>0?100:(state.shieldProgress/25*100))+"%";
 }
 function renderCoverage(){
   const host=document.getElementById("coverageList");
