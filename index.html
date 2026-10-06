@@ -513,7 +513,10 @@ function reward(ok){
     if(state.shields<1){
       state.shieldProgress++;
       if(state.shieldProgress>=25){state.shields=1;state.shieldProgress=0}
-    document.getElementById("questionCard").classList.remove("celebrate");void document.getElementById("questionCard").offsetWidth;document.getElementById("questionCard").classList.add("celebrate");
+    }
+    document.getElementById("questionCard").classList.remove("celebrate");
+    void document.getElementById("questionCard").offsetWidth;
+    document.getElementById("questionCard").classList.add("celebrate");
   }else{
     if(state.shields>0){state.shields--}else{state.streak=0}
   }
