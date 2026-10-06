@@ -98,6 +98,16 @@
     .list{display:grid;gap:8px;max-height:310px;overflow:auto;padding-right:3px}
     .playrow{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fcfdfc}
     .playrow small{color:var(--muted)}
+    .leaderboard{width:100%;border-collapse:separate;border-spacing:0 8px}
+    .leaderboard th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:0 8px}
+    .leaderboard td{background:#f8fbf9;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 8px;font-weight:800}
+    .leaderboard td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}
+    .leaderboard td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}
+    .rank{font-size:18px}
+    .mode-explain{display:grid;gap:10px;margin-top:12px}
+    .mode-card{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fbfdfb}
+    .mode-card b{display:block;margin-bottom:4px}
+    .mode-card small{color:var(--muted);line-height:1.45}
     .footer{margin-top:24px;text-align:center;color:#718078;font-size:12px;line-height:1.5}
     .paw{font-size:24px}
     .celebrate{animation:pop .35s ease}
@@ -156,15 +166,34 @@
       </div>
 
       <div class="card">
-        <h2>What this version trains</h2>
-        <div class="list">
-          <div class="playrow"><div><b>Playbook Rotation</b><br><small>Cycles through the verified play names instead of repeating only a few.</small></div><span>📋</span></div>
-          <div class="playrow"><div><b>Defensive Fronts</b><br><small>Head-up, inside shade, outside shade, wide defender, uncovered and linebacker threats.</small></div><span>🧠</span></div>
-          <div class="playrow"><div><b>OL Technique</b><br><small>Short first step, low pads, hands inside, hips through, active feet, pulls, traps and climbs.</small></div><span>💪</span></div>
-          <div class="playrow"><div><b>Wildcat Progress</b><br><small>XP, streaks, active shield protection, coverage and position-by-position reps.</small></div><span>🐾</span></div>
+        <h2>Choose Your Training Mode</h2>
+        <p class="sub">Each mode works a different part of football IQ. Pick one or use Mixed Training to rotate through everything.</p>
+        <div class="mode-explain">
+          <div class="mode-card"><b>🔀 Mixed Training</b><small>Combines playbook recall and defensive-front questions so you have to remember the play and react to how the defense lines up.</small></div>
+          <div class="mode-card"><b>📋 Playbook Recall</b><small>Tests whether you can actually explain your selected position’s responsibility on a specific play. You type the assignment from memory before giving yourself credit.</small></div>
+          <div class="mode-card"><b>🧠 Front Lab</b><small>Changes the defensive look — head-up, inside shade, outside shade, wide defender, uncovered, or linebacker threat — and tests the technique and adjustment needed to handle it.</small></div>
         </div>
-        <p class="tiny" style="margin-top:14px">Exact play assignments are intentionally not invented. The app is ready for the verified assignment matrix to be added from the team playbook.</p>
+        <p class="tiny" style="margin-top:14px">Exact play assignments are never invented. The current coach-issued playbook remains the source of truth.</p>
       </div>
+    </section>
+
+    <section id="loginLeaderboard" class="card" style="margin-top:18px">
+      <div class="row" style="justify-content:space-between;align-items:flex-end">
+        <div>
+          <div class="eyebrow" style="color:var(--green)">Wildcat Competition</div>
+          <h2 style="margin:4px 0 4px">Leaderboard</h2>
+          <p class="sub" style="margin:0">See who is leading in XP, streak, reps and playbook coverage.</p>
+        </div>
+        <span class="pill">This device</span>
+      </div>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table class="leaderboard">
+          <thead><tr><th>Rank</th><th>Player</th><th>Positions</th><th>XP</th><th>Streak</th><th>Coverage</th><th>Reps</th></tr></thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+      </div>
+      <p id="leaderboardEmpty" class="tiny">No player scores yet on this device. Complete some reps and the standings will appear here.</p>
+      <p class="tiny">Team-wide syncing across different phones/iPads requires the shared online leaderboard backend. This first version ranks every profile saved on this device.</p>
     </section>
 
     <section id="game" class="hidden">
@@ -243,7 +272,7 @@
     </section>
 
     <div class="footer">
-      Wildcat-inspired football learning tool for player development. <b>Build v1.2 • Oct 5, 2026</b><br/>This site is not an official Pinelands Regional School District publication.<br/>
+      Wildcat-inspired football learning tool for player development. <b>Build v1.3 • Oct 5, 2026</b><br/>This site is not an official Pinelands Regional School District publication.<br/>
       School identity references are used for team-pride training; exact football assignments should always match the current coach-issued playbook.
     </div>
   </main>
@@ -361,7 +390,7 @@ let state = {
 };
 
 function key(){ return "jpp_profile_"+state.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_"); }
-function save(){ localStorage.setItem(key(), JSON.stringify(state)); }
+function save(){ localStorage.setItem(key(), JSON.stringify(state)); renderLeaderboard(); }
 function loadProfile(name){
   const k="jpp_profile_"+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_");
   try{return JSON.parse(localStorage.getItem(k)||"null")}catch{return null}
@@ -395,6 +424,43 @@ document.addEventListener("click",e=>{
   if(b.parentElement.id==="gameModes"){save();nextQuestion();}
 });
 
+function allLocalProfiles(){
+  const profiles=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(!k || !k.startsWith("jpp_profile_")) continue;
+    try{
+      const p=JSON.parse(localStorage.getItem(k)||"null");
+      if(p && p.name) profiles.push(p);
+    }catch{}
+  }
+  return profiles;
+}
+function renderLeaderboard(){
+  const body=document.getElementById("leaderboardBody");
+  const empty=document.getElementById("leaderboardEmpty");
+  if(!body)return;
+  const rows=allLocalProfiles().sort((a,b)=>
+    (b.xp||0)-(a.xp||0) ||
+    (b.streak||0)-(a.streak||0) ||
+    (b.reps||0)-(a.reps||0)
+  );
+  body.innerHTML=rows.map((p,i)=>{
+    const covered=Object.keys(p.seenPlays||{}).length;
+    const cov=Math.round(covered/PLAYS.length*100);
+    const medal=i===0?"🥇":i===1?"🥈":i===2?"🥉":"#"+(i+1);
+    return '<tr>'+
+      '<td class="rank">'+medal+'</td>'+
+      '<td>'+escapeHtml(p.name||"Wildcat")+'</td>'+
+      '<td>'+escapeHtml((p.positions||[]).join(", "))+'</td>'+
+      '<td>'+(p.xp||0).toLocaleString()+'</td>'+
+      '<td>🔥 '+(p.streak||0)+'</td>'+
+      '<td>'+cov+'%</td>'+
+      '<td>'+(p.reps||0)+'</td>'+
+    '</tr>';
+  }).join("");
+  if(empty) empty.classList.toggle("hidden",rows.length>0);
+}
 function start(){
   const name=document.getElementById("playerName").value.trim();
   const pos=[...document.querySelectorAll("#positionChecks input:checked")].map(x=>x.value);
@@ -411,13 +477,18 @@ function start(){
 }
 function showGame(){
   document.getElementById("setup").classList.add("hidden");
+  document.getElementById("loginLeaderboard").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
   document.getElementById("welcome").textContent=state.name;
   document.getElementById("playerPositions").innerHTML=state.positions.map(p=>'<span class="pill">'+p+'</span>').join("");
   setModeButtons("gameModes",state.mode);updateStats();renderCoverage();
 }
 function changePlayer(){
-  save();document.getElementById("game").classList.add("hidden");document.getElementById("setup").classList.remove("hidden");
+  save();
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("setup").classList.remove("hidden");
+  document.getElementById("loginLeaderboard").classList.remove("hidden");
+  renderLeaderboard();
 }
 function nextPlay(){
   if(state.playIndex>=state.playDeck.length){state.playDeck=shuffle(PLAYS);state.playIndex=0}
@@ -549,6 +620,7 @@ document.getElementById("nextBtn").onclick=nextQuestion;
 document.getElementById("startBtn").onclick=start;
 document.getElementById("changePlayer").onclick=changePlayer;
 buildPositions();
+renderLeaderboard();
 </script>
 </body>
 </html>
