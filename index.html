@@ -176,6 +176,7 @@
         <p class="sub">Use your name, nickname, screen name or codename. Pick every position you want to train.</p>
         <label for="playerName">Player name / codename</label>
         <input id="playerName" type="text" maxlength="28" placeholder="Example: Richie / Big R / Wildcat 74" autocomplete="off"/>
+        <p id="returningPlayerMessage" class="tiny" aria-live="polite"></p>
         <label>Positions</label>
         <details class="multi">
           <summary><span id="posSummary">Select positions</span><span>▾</span></summary>
@@ -417,7 +418,7 @@ let state = {
 };
 
 function key(){ return "jpp_profile_"+state.name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_"); }
-function save(){ localStorage.setItem(key(), JSON.stringify(state)); renderLeaderboard(); }
+function save(){ if(!state.name)return; localStorage.setItem(key(), JSON.stringify(state)); localStorage.setItem("jpp_last_player",state.name); renderLeaderboard(); }
 function loadProfile(name){
   const k="jpp_profile_"+name.trim().toLowerCase().replace(/[^a-z0-9]+/g,"_");
   try{return JSON.parse(localStorage.getItem(k)||"null")}catch{return null}
@@ -488,6 +489,19 @@ function renderLeaderboard(){
   }).join("");
   if(empty) empty.classList.toggle("hidden",rows.length>0);
 }
+function restoreLastPlayer(){
+  const name=localStorage.getItem("jpp_last_player");
+  if(!name)return;
+  const prior=loadProfile(name);
+  if(!prior)return;
+  const nameInput=document.getElementById("playerName");
+  nameInput.value=prior.name||name;
+  const selected=new Set(prior.positions||[]);
+  document.querySelectorAll("#positionChecks input").forEach(input=>{input.checked=selected.has(input.value)});
+  updatePosSummary();
+  const message=document.getElementById("returningPlayerMessage");
+  if(message)message.textContent="Welcome back, "+(prior.name||name)+"! Your saved XP ("+(prior.xp||0).toLocaleString()+"), streak, and progress will continue.";
+}
 function start(){
   const name=document.getElementById("playerName").value.trim();
   const pos=[...document.querySelectorAll("#positionChecks input:checked")].map(x=>x.value);
@@ -515,6 +529,7 @@ function changePlayer(){
   document.getElementById("game").classList.add("hidden");
   document.getElementById("setup").classList.remove("hidden");
   document.getElementById("loginLeaderboard").classList.remove("hidden");
+  restoreLastPlayer();
   renderLeaderboard();
 }
 function nextPlay(){
@@ -647,6 +662,7 @@ document.getElementById("nextBtn").onclick=nextQuestion;
 document.getElementById("startBtn").onclick=start;
 document.getElementById("changePlayer").onclick=changePlayer;
 buildPositions();
+restoreLastPlayer();
 renderLeaderboard();
 
 </script>
