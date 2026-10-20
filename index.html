@@ -124,7 +124,46 @@
     }
   </style>
 
-</head>
+<style id="wildcats-v2-theme">
+:root{--green:#063522;--green2:#05291e;--gold:#eabb39;--cream:#f7f8f6;--ink:#f4f8f5;--card:#0b211c;--line:#426455;--muted:#a7b8af}
+html{scroll-behavior:smooth}body{background:#001b13!important;color:#f5f8f5!important;font-family:Arial,Helvetica,sans-serif!important}
+.shell{max-width:1600px!important;padding:12px 24px!important}
+.hero{background:#002017!important;border:0!important;padding:8px 0 18px!important;box-shadow:none!important}
+.hero .brand h1{font-size:clamp(30px,4vw,66px)!important;color:#f6cf53!important;letter-spacing:2px;text-shadow:2px 3px #27452e}
+.hero .motto{font-weight:800!important;letter-spacing:5px!important;color:#fff!important}
+.hero-note{display:none!important}
+.card{background:#09241c!important;color:#f4f8f5!important;border:1px solid #48685c!important;box-shadow:none!important}
+.btn,.mode button{border-radius:12px!important}
+.btn.gold,#openDiagramChallenge{background:linear-gradient(110deg,#c69b20,#f3d258)!important;color:#0a1b14!important;font-weight:900!important}
+#readReactUpdate{display:none!important}
+#setup,#loginLeaderboard{color:#eaf4ef}
+#setup .card,#loginLeaderboard{background:#0a281e!important}
+#setup input,#setup select,#diagramChallenge input{background:#f7f8f5!important;color:#071f15!important}
+#diagramChallenge{border:3px solid #e7b73b!important;border-radius:23px!important;background:#07321e!important;padding:16px!important}
+#diagramChallenge h2{color:#f5d15b!important;font-size:clamp(22px,3vw,38px)}
+#diagramChallenge .row{gap:12px}
+#diagramChallenge .diagram-stage{position:relative;background:#fff;border-radius:14px;overflow:hidden;min-height:260px}
+#diagramQuizImage{width:100%!important;max-height:580px!important;object-fit:contain!important}
+#diagramNameMask{background:#0a0f0d!important;color:white!important;border-radius:12px;top:12px!important;left:25%!important;right:25%!important;height:65px!important;font-size:clamp(16px,2vw,26px)}
+#diagramChallenge button{font-weight:800}
+#diagramChallengeStatus{color:#f5d15b}
+#wildcatsTopNav{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin:6px 0 18px}
+#wildcatsTopNav button{background:#061c15;color:white;border:2px solid #c6a74e;border-radius:18px;padding:14px 22px;font-weight:800;font-size:16px;cursor:pointer}
+#wildcatsTopNav button:hover{background:#184b34}
+#wildcatsShell{display:grid;grid-template-columns:minmax(235px,25%) minmax(0,1fr);gap:18px;align-items:start}
+#wildcatsSidebar{border:2px solid #476d5d;border-radius:18px;background:#05261c;padding:18px;position:sticky;top:12px}
+#wildcatsSidebar .statline{border-bottom:1px solid #426959;padding:10px 0;font-size:17px}
+#wildcatsSidebar .statline strong{display:block;color:#f1bf39;font-size:25px;margin-top:4px}
+#wildcatsSidebar button{display:block;width:100%;text-align:left;padding:16px 12px;margin-top:12px;border:2px solid #47675c;border-radius:14px;background:#071e17;color:white;font-weight:800;cursor:pointer}
+#wildcatsSidebar button.active{background:linear-gradient(120deg,#d5a625,#f3d05a);color:#061e13}
+#wildcatsMain{min-width:0}
+#wildcatsMain #diagramChallenge{margin:0!important}
+#wildcatsMain #diagramChallenge>p:first-of-type{display:none}
+#wildcatsMain #diagramChallenge .row:first-child{margin-bottom:10px}
+#wildcatsMain #diagramChallenge input{width:100%;padding:13px;border-radius:10px}
+#wildcatsMain #diagramChallenge .btn{padding:15px}
+@media(max-width:800px){.shell{padding:10px!important}#wildcatsShell{grid-template-columns:1fr}#wildcatsSidebar{position:static}#wildcatsTopNav{justify-content:center}#wildcatsTopNav button{padding:10px;font-size:13px}#diagramNameMask{left:12%!important;right:12%!important}}
+</style></head>
 <body>
   <main class="shell">
     <section class="hero">
@@ -782,5 +821,40 @@ renderLeaderboard();
   load();
 })();
 </script>
-</body>
+<script id="wildcats-v2-layout">
+(function(){
+ const shell=document.querySelector('.shell'),hero=document.querySelector('.hero'),setup=document.getElementById('setup'),challenge=document.getElementById('diagramChallenge');
+ if(!shell||!hero||!setup||!challenge)return;
+ const nav=document.createElement('nav');nav.id='wildcatsTopNav';nav.setAttribute('aria-label','Wildcats navigation');
+ nav.innerHTML='<button id="v2Home">🏠 Main Menu</button><button id="v2Diagrams">📖 View Diagrams</button><button id="v2Progress">🏆 My Progress</button><button id="v2Settings">⚙ Settings</button>';
+ hero.after(nav);
+ const layout=document.createElement('div');layout.id='wildcatsShell';
+ const sidebar=document.createElement('aside');sidebar.id='wildcatsSidebar';
+ sidebar.innerHTML='<div class="statline">Player<strong id="v2Player">Wildcat</strong></div><div class="statline">Position<strong id="v2Position">Select Position</strong></div><div class="statline">XP Points<strong id="v2XP">0</strong></div><div class="statline">Streak<strong id="v2Streak">0</strong></div><button class="active" id="v2Identify">❔ Identify the Play</button><button id="v2Assignment">◎ Know Your Assignment</button><button id="v2Formation">♙ Formation Recognition</button><button id="v2Situation">♟ Situational Football</button><button id="v2Drive">✣ Full Drive Challenge</button>';
+ const main=document.createElement('div');main.id='wildcatsMain';layout.append(sidebar,main);nav.after(layout);
+ main.append(challenge);
+ const refresh=()=>{
+  try{const name=localStorage.getItem('jpp_last_player');const p=name&&typeof loadProfile==='function'?loadProfile(name):null;
+  document.getElementById('v2Player').textContent=p?.name||name||'Wildcat';
+  document.getElementById('v2Position').textContent=(p?.positions||[]).join(', ')||'Choose position';
+  document.getElementById('v2XP').textContent=(p?.xp||0).toLocaleString();
+  document.getElementById('v2Streak').textContent=String(p?.streak||0);
+  }catch(e){}
+ };
+ const show=(element)=>{challenge.classList.add('hidden');if(element===challenge)challenge.classList.remove('hidden');element.scrollIntoView({behavior:'smooth',block:'start'});refresh();};
+ const openChallenge=()=>{show(challenge);document.getElementById('openDiagramChallenge').click();refresh()};
+ document.getElementById('v2Identify').onclick=openChallenge;
+ document.getElementById('v2Home').onclick=()=>{challenge.classList.add('hidden');setup.scrollIntoView({behavior:'smooth'});refresh()};
+ document.getElementById('v2Diagrams').onclick=()=>{document.getElementById('openDiagrams').click();document.getElementById('playbookDiagrams').scrollIntoView({behavior:'smooth'});};
+ document.getElementById('v2Progress').onclick=()=>{document.getElementById('loginLeaderboard').classList.remove('hidden');document.getElementById('loginLeaderboard').scrollIntoView({behavior:'smooth'});refresh()};
+ document.getElementById('v2Settings').onclick=()=>setup.scrollIntoView({behavior:'smooth'});
+ for(const id of ['v2Assignment','v2Formation','v2Situation','v2Drive']){
+  document.getElementById(id).onclick=()=>{setup.scrollIntoView({behavior:'smooth'});document.getElementById('setupModes').scrollIntoView({behavior:'smooth'});};
+ }
+ document.getElementById('diagramExit').addEventListener('click',()=>refresh());
+ const oldNext=document.getElementById('diagramNext');oldNext.addEventListener('click',refresh);
+ const observer=new MutationObserver(refresh);observer.observe(document.getElementById('diagramResult'),{childList:true,subtree:true});
+ refresh();
+})();
+</script></body>
 </html>
