@@ -183,27 +183,19 @@
       <p><small>Confidence first: practice recognition without a clock, then build decision speed. Contact technique must be coached in person. This panel teaches fundamentals; it does not claim that every latest-video assignment is digitally mapped yet.</small></p>
     </section>
     <section class="card" id="latestVideo" style="margin:18px 0;border:2px solid #f3c64e">
-      <h2>🎬 Latest 2026 Wildcats Playbook — Video Study</h2>
-      <p>The latest coach-approved playbook is <strong>IMG_2335.mp4</strong>. All plays shown are verified. Use the original video to study each diagram before the next question.</p>
-      <label for="playbookVideoFile"><strong>Open the latest playbook video from your device:</strong></label>
-      <input id="playbookVideoFile" type="file" accept="video/mp4,video/*" style="display:block;max-width:100%;margin:10px 0" />
-      <video id="playbookVideoPlayer" controls playsinline preload="metadata" style="display:none;width:100%;max-height:480px;background:#102018;border-radius:14px" aria-label="Latest 2026 playbook video"></video>
-      <p id="playbookVideoStatus" role="status">Choose the MP4 to view the latest diagrams here. The file stays on your device.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" id="videoBack">◀ 5 sec</button>
-        <button type="button" id="videoPause">Play / Pause</button>
-        <button type="button" id="videoForward">5 sec ▶</button>
+      <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap">
+        <h2>🏈 2026 Wildcats Play Diagrams</h2>
+        <button type="button" id="galleryHome" class="btn ghost">⌂ Main Menu</button>
       </div>
-      <p><small>The video is not yet hosted on the website, so it must be selected from your device for this study mode. The existing play quiz remains available below. Diagram-by-diagram position grading will be added only after each assignment is mapped accurately.</small></p>
-<div id="playbookGallery" style="margin-top:18px;padding:15px;border-radius:14px;background:#f1f7f2;color:#102018">
-<h3>📸 Playbook Diagram Gallery</h3>
-<p>Choose the latest video once to extract diagram images automatically. The gallery is saved on this device for future visits.</p>
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-<button type="button" id="galleryPrev">◀ Previous</button><strong id="galleryCount">No images saved yet</strong><button type="button" id="galleryNext">Next ▶</button>
-<button type="button" id="galleryExtract">Extract images from loaded video</button></div>
-<img id="galleryImage" alt="Extracted latest playbook diagram" style="display:none;width:100%;max-height:650px;object-fit:contain;background:#fff;border-radius:10px;margin-top:12px">
-<p id="galleryStatus" aria-live="polite">Load the video above to build the gallery. Extraction happens entirely in your browser.</p>
-</div>
+      <p>Verified playbook images load directly from the package already on this website. No video or file upload required.</p>
+      <p id="autoGalleryStatus" role="status">Loading diagrams…</p>
+      <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+        <button type="button" id="autoPrev" class="btn ghost">◀ Previous</button>
+        <label for="autoSelect">Diagram</label><select id="autoSelect" aria-label="Choose playbook diagram"></select>
+        <button type="button" id="autoNext" class="btn ghost">Next ▶</button>
+      </div>
+      <img id="autoDiagram" alt="2026 Wildcats playbook diagram" style="display:none;width:100%;max-height:680px;object-fit:contain;background:white;border-radius:12px;margin-top:12px" />
+      <p class="tiny">Frames from the verified playbook video; multiple frames can represent the same play. Position assignments are not automatically inferred from an image.</p>
     </section>
     <section id="setup" class="grid">
       <div class="card">
@@ -684,100 +676,59 @@ document.getElementById("changePlayer").onclick=changePlayer;
 buildPositions();
 renderLeaderboard();
 
-// Latest video study: local video loading, no upload or network transfer.
-(function(){
- const input=document.getElementById('playbookVideoFile');
- const video=document.getElementById('playbookVideoPlayer');
- const status=document.getElementById('playbookVideoStatus');
- let objectUrl=null;
- input.addEventListener('change',()=>{
-  const file=input.files&&input.files[0];if(!file)return;
-  if(objectUrl)URL.revokeObjectURL(objectUrl);
-  objectUrl=URL.createObjectURL(file);video.src=objectUrl;video.style.display='block';
-  status.textContent='Loaded '+file.name+' — pause on any diagram to study it.';
- });
- document.getElementById('videoBack').addEventListener('click',()=>{if(video.src)video.currentTime=Math.max(0,video.currentTime-5)});
- document.getElementById('videoForward').addEventListener('click',()=>{if(video.src)video.currentTime=Math.min(video.duration||Infinity,video.currentTime+5)});
- document.getElementById('videoPause').addEventListener('click',()=>{if(video.src){if(video.paused)video.play();else video.pause()}});
-})();
-
-(function(){
-const image=document.getElementById('galleryImage'),count=document.getElementById('galleryCount'),status=document.getElementById('galleryStatus');
-const video=document.getElementById('playbookVideoPlayer');let frames=[],at=0;
-function draw(){count.textContent=frames.length?'Diagram '+(at+1)+' of '+frames.length:'No images saved yet';image.style.display=frames.length?'block':'none';if(frames.length)image.src=frames[at];}
-function db(){return new Promise((resolve,reject)=>{const r=indexedDB.open('wildcats-playbook-frames',1);r.onupgradeneeded=()=>r.result.createObjectStore('gallery');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
-async function store(v){const d=await db();return new Promise((resolve,reject)=>{const t=d.transaction('gallery','readwrite');t.objectStore('gallery').put(v,'latest2026');t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>reject(t.error)})}
-async function restore(){try{const d=await db();const value=await new Promise((resolve,reject)=>{const t=d.transaction('gallery');const r=t.objectStore('gallery').get('latest2026');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});d.close();if(value?.length){frames=value;draw();status.textContent='Saved diagrams restored from this device.'}}catch(e){status.textContent='Local gallery storage is unavailable in this browser.'}}
-document.getElementById('galleryPrev').onclick=()=>{if(frames.length){at=(at-1+frames.length)%frames.length;draw()}};
-document.getElementById('galleryNext').onclick=()=>{if(frames.length){at=(at+1)%frames.length;draw()}};
-document.getElementById('galleryExtract').onclick=async()=>{
- if(!video.src){status.textContent='Choose the latest MP4 in the video player above first.';return;}
- const btn=document.getElementById('galleryExtract');btn.disabled=true;frames=[];at=0;
- const temp=document.createElement('video');temp.muted=true;temp.preload='auto';temp.playsInline=true;temp.src=video.src;
- try{
- await new Promise((resolve,reject)=>{temp.onloadedmetadata=resolve;temp.onerror=()=>reject(Error('Unable to load video'));if(temp.readyState>=1)resolve()});
- const canvas=document.createElement('canvas');canvas.width=640;canvas.height=360;const ctx=canvas.getContext('2d');
- const n=Math.min(83,Math.max(1,Math.floor(temp.duration/1.35)));
- for(let i=0;i<n;i++){
-  const t=Math.min(temp.duration-.1,(i+.5)*temp.duration/n);
-  await new Promise((resolve,reject)=>{temp.onseeked=resolve;temp.onerror=()=>reject(Error('Video seek failed'));temp.currentTime=t;});
-  ctx.drawImage(temp,0,0,canvas.width,canvas.height);
-  frames.push(canvas.toDataURL('image/jpeg',.65));
-  if(i%5===0){status.textContent='Extracting '+(i+1)+' / '+n+' frames…';draw()}
- }
- await store(frames);draw();status.textContent='Saved '+frames.length+' diagram frames on this device. Use Previous/Next to study. Frames may repeat; they are not counted as unique plays.';
- }catch(e){status.textContent='Could not extract the images: '+e.message}
- finally{temp.removeAttribute('src');temp.load();btn.disabled=false;}
-};
-restore();
-})();
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script>
 (function(){
-  const old=document.getElementById('latestVideo');
-  if(!old)return;
-  const section=document.createElement('section');
-  section.className='card';
-  section.id='latestVideo';
-  section.style.cssText='margin:18px 0;border:2px solid #f3c64e';
-  section.innerHTML=`
-    <h2>🏈 2026 Wildcats Verified Playbook Diagrams</h2>
-    <p>All 83 extracted frames from the latest approved playbook video are hosted with this website. No upload needed.</p>
-    <p id="autoGalleryStatus" role="status">Loading the playbook images…</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <button type="button" id="autoPrev">◀ Previous</button>
-      <label style="display:flex;align-items:center;gap:8px">Frame <select id="autoSelect" aria-label="Choose playbook frame"></select></label>
-      <button type="button" id="autoNext">Next ▶</button>
-    </div>
-    <img id="autoDiagram" alt="Verified Wildcats playbook video frame" style="display:none;width:100%;max-height:680px;object-fit:contain;background:white;border-radius:12px;margin-top:12px" />
-    <p><small>These are 83 video frames, not necessarily 83 distinct plays. The original quiz remains available below; assignments must match each verified diagram.</small></p>`;
-  old.replaceWith(section);
-  const status=section.querySelector('#autoGalleryStatus'),select=section.querySelector('#autoSelect'),img=section.querySelector('#autoDiagram');
+  const status=document.getElementById('autoGalleryStatus');
+  const select=document.getElementById('autoSelect');
+  const img=document.getElementById('autoDiagram');
   let urls=[];
-  function show(i){if(!urls.length)return;const n=(i+urls.length)%urls.length;select.value=String(n);img.src=urls[n];img.style.display='block';status.textContent='Showing frame '+(n+1)+' of '+urls.length;}
-  section.querySelector('#autoPrev').onclick=()=>show((Number(select.value)||0)-1);
-  section.querySelector('#autoNext').onclick=()=>show((Number(select.value)||0)+1);
-  select.onchange=()=>show(Number(select.value));
+  function show(i){
+    if(!urls.length)return;
+    const n=(i+urls.length)%urls.length;
+    select.value=String(n);img.src=urls[n];img.style.display='block';
+    status.textContent='Diagram '+(n+1)+' of '+urls.length;
+  }
+  document.getElementById('autoPrev').addEventListener('click',()=>show((Number(select.value)||0)-1));
+  document.getElementById('autoNext').addEventListener('click',()=>show((Number(select.value)||0)+1));
+  select.addEventListener('change',()=>show(Number(select.value)));
+  document.getElementById('galleryHome').addEventListener('click',()=>{
+    if(typeof changePlayer==='function')changePlayer();
+    document.getElementById('setup').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  // Give players a persistent return control while actively taking the quiz.
+  const game=document.getElementById('game');
+  if(game){
+    const home=document.createElement('button');
+    home.type='button';home.className='btn ghost';home.textContent='⌂ Main Menu';
+    home.style.marginBottom='14px';
+    home.addEventListener('click',()=>{changePlayer();document.getElementById('setup').scrollIntoView({behavior:'smooth'});});
+    game.prepend(home);
+  }
   async function load(){
     try{
-      if(typeof JSZip==='undefined')throw Error('Image reader unavailable; reload the page.');
-      const response=await fetch('./Wildcats_83_Embedded_Images.zip',{cache:'no-cache'});
-      if(!response.ok)throw Error('Image package could not be downloaded ('+response.status+').');
+      if(!window.JSZip)throw Error('Image library unavailable. Please reload while connected to the internet.');
+      const response=await fetch('./Wildcats_83_Embedded_Images.zip',{cache:'no-store'});
+      if(!response.ok)throw Error('The image archive returned '+response.status);
       const zip=await JSZip.loadAsync(await response.arrayBuffer());
-      const paths=Object.keys(zip.files).filter(n=>/^images\/.*\.(jpe?g|png)$/i.test(n)).sort();
-      if(!paths.length)throw Error('No diagram images found in the uploaded ZIP.');
+      const paths=Object.keys(zip.files).filter(n=>!zip.files[n].dir&&/\.(jpe?g|png|webp)$/i.test(n)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+      if(!paths.length)throw Error('The uploaded archive contains no supported images.');
       for(const path of paths){
-        const bytes=await zip.file(path).async('blob');
-        urls.push(URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'})));
-        const option=document.createElement('option');option.value=String(urls.length-1);option.textContent=String(urls.length).padStart(2,'0');select.appendChild(option);
+        const extension=path.split('.').pop().toLowerCase();
+        const mime=extension==='png'?'image/png':extension==='webp'?'image/webp':'image/jpeg';
+        const bytes=await zip.files[path].async('blob');
+        urls.push(URL.createObjectURL(new Blob([bytes],{type:mime})));
+        const option=document.createElement('option');
+        option.value=String(urls.length-1);option.textContent=String(urls.length)+' — '+path.split('/').pop();
+        select.appendChild(option);
       }
       show(0);
-    }catch(err){status.textContent='Could not load the hosted diagrams: '+err.message;}
+    }catch(err){status.textContent='Unable to display the images: '+err.message;}
   }
+  window.addEventListener('pagehide',()=>urls.forEach(url=>URL.revokeObjectURL(url)),{once:true});
   load();
-  window.addEventListener('pagehide',()=>urls.forEach(URL.revokeObjectURL),{once:true});
 })();
 </script>
 </body>
