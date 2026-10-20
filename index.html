@@ -154,6 +154,20 @@
       <p><strong>Second level:</strong> When the verified assignment calls for a linebacker block, move efficiently in space, then decelerate, regain balance and fit the block rather than sprinting upright into contact.</p>
       <p><small>Confidence first: practice recognition without a clock, then build decision speed. Contact technique must be coached in person. This panel teaches fundamentals; it does not claim that every latest-video assignment is digitally mapped yet.</small></p>
     </section>
+    <section class="card" id="latestVideo" style="margin:18px 0;border:2px solid #f3c64e">
+      <h2>🎬 Latest 2026 Wildcats Playbook — Video Study</h2>
+      <p>The latest coach-approved playbook is <strong>IMG_2335.mp4</strong>. All plays shown are verified. Use the original video to study each diagram before the next question.</p>
+      <label for="playbookVideoFile"><strong>Open the latest playbook video from your device:</strong></label>
+      <input id="playbookVideoFile" type="file" accept="video/mp4,video/*" style="display:block;max-width:100%;margin:10px 0" />
+      <video id="playbookVideoPlayer" controls playsinline preload="metadata" style="display:none;width:100%;max-height:480px;background:#102018;border-radius:14px" aria-label="Latest 2026 playbook video"></video>
+      <p id="playbookVideoStatus" role="status">Choose the MP4 to view the latest diagrams here. The file stays on your device.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" id="videoBack">◀ 5 sec</button>
+        <button type="button" id="videoPause">Play / Pause</button>
+        <button type="button" id="videoForward">5 sec ▶</button>
+      </div>
+      <p><small>The video is not yet hosted on the website, so it must be selected from your device for this study mode. The existing play quiz remains available below. Diagram-by-diagram position grading will be added only after each assignment is mapped accurately.</small></p>
+    </section>
     <section id="setup" class="grid">
       <div class="card">
         <h2>Player Check-In</h2>
@@ -632,6 +646,23 @@ document.getElementById("startBtn").onclick=start;
 document.getElementById("changePlayer").onclick=changePlayer;
 buildPositions();
 renderLeaderboard();
+
+// Latest video study: local video loading, no upload or network transfer.
+(function(){
+ const input=document.getElementById('playbookVideoFile');
+ const video=document.getElementById('playbookVideoPlayer');
+ const status=document.getElementById('playbookVideoStatus');
+ let objectUrl=null;
+ input.addEventListener('change',()=>{
+  const file=input.files&&input.files[0];if(!file)return;
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(file);video.src=objectUrl;video.style.display='block';
+  status.textContent='Loaded '+file.name+' — pause on any diagram to study it.';
+ });
+ document.getElementById('videoBack').addEventListener('click',()=>{if(video.src)video.currentTime=Math.max(0,video.currentTime-5)});
+ document.getElementById('videoForward').addEventListener('click',()=>{if(video.src)video.currentTime=Math.min(video.duration||Infinity,video.currentTime+5)});
+ document.getElementById('videoPause').addEventListener('click',()=>{if(video.src){if(video.paused)video.play();else video.pause()}});
+})();
 </script>
 </body>
 </html>
