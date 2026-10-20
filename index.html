@@ -123,6 +123,34 @@
       .card{padding:17px}
     }
   </style>
+<script id="jszipLoader" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+// Load the coach-approved 83-frame package directly from this repository.
+// JSZip is used solely to unpack image files client-side; no uploads required.
+(function(){
+ const host=document.getElementById('playbookGallery');if(!host)return;
+ const p=host.querySelector('p');if(p)p.textContent='The 83 latest playbook frames load automatically from the repository. No video selection needed.';
+ const old=host.querySelector('#galleryExtract');if(old)old.style.display='none';
+ const count=document.getElementById('galleryCount'),img=document.getElementById('galleryImage'),status=document.getElementById('galleryStatus');
+ let urls=[],at=0;
+ function draw(){count.textContent=urls.length?'Frame '+(at+1)+' of '+urls.length:'Loading playbook frames…';img.style.display=urls.length?'block':'none';if(urls.length)img.src=urls[at]}
+ document.getElementById('galleryPrev').addEventListener('click',()=>{if(urls.length){at=(at+urls.length-1)%urls.length;draw()}},true);
+ document.getElementById('galleryNext').addEventListener('click',()=>{if(urls.length){at=(at+1)%urls.length;draw()}},true);
+ async function load(){
+  try{
+   status.textContent='Loading latest verified playbook images…';
+   if(!window.JSZip)throw Error('Image unpacker unavailable');
+   const response=await fetch('./Wildcats_83_Embedded_Images.zip');
+   if(!response.ok)throw Error('Image package not found ('+response.status+')');
+   const zip=await JSZip.loadAsync(await response.arrayBuffer());
+   const entries=Object.values(zip.files).filter(f=>!f.dir&&/\.(jpe?g|png|webp)$/i.test(f.name)).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+   if(!entries.length)throw Error('No image files were found in the ZIP');
+   for(const e of entries){const blob=await e.async('blob');urls.push(URL.createObjectURL(blob));}
+   at=0;draw();status.textContent=urls.length+' verified-video frames embedded from GitHub. Some frames may repeat a play; the frames are not a count of distinct plays.';
+  }catch(e){status.textContent='Unable to load embedded diagrams: '+e.message+'. You can still use the local video option above.'}
+ }
+ load();
+})();
+</script>
 </head>
 <body>
   <main class="shell">
