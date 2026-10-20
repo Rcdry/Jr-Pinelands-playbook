@@ -732,5 +732,53 @@ document.getElementById('galleryExtract').onclick=async()=>{
 restore();
 })();
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+(function(){
+  const old=document.getElementById('latestVideo');
+  if(!old)return;
+  const section=document.createElement('section');
+  section.className='card';
+  section.id='latestVideo';
+  section.style.cssText='margin:18px 0;border:2px solid #f3c64e';
+  section.innerHTML=`
+    <h2>🏈 2026 Wildcats Verified Playbook Diagrams</h2>
+    <p>All 83 extracted frames from the latest approved playbook video are hosted with this website. No upload needed.</p>
+    <p id="autoGalleryStatus" role="status">Loading the playbook images…</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button type="button" id="autoPrev">◀ Previous</button>
+      <label style="display:flex;align-items:center;gap:8px">Frame <select id="autoSelect" aria-label="Choose playbook frame"></select></label>
+      <button type="button" id="autoNext">Next ▶</button>
+    </div>
+    <img id="autoDiagram" alt="Verified Wildcats playbook video frame" style="display:none;width:100%;max-height:680px;object-fit:contain;background:white;border-radius:12px;margin-top:12px" />
+    <p><small>These are 83 video frames, not necessarily 83 distinct plays. The original quiz remains available below; assignments must match each verified diagram.</small></p>`;
+  old.replaceWith(section);
+  const status=section.querySelector('#autoGalleryStatus'),select=section.querySelector('#autoSelect'),img=section.querySelector('#autoDiagram');
+  let urls=[];
+  function show(i){if(!urls.length)return;const n=(i+urls.length)%urls.length;select.value=String(n);img.src=urls[n];img.style.display='block';status.textContent='Showing frame '+(n+1)+' of '+urls.length;}
+  section.querySelector('#autoPrev').onclick=()=>show((Number(select.value)||0)-1);
+  section.querySelector('#autoNext').onclick=()=>show((Number(select.value)||0)+1);
+  select.onchange=()=>show(Number(select.value));
+  async function load(){
+    try{
+      if(typeof JSZip==='undefined')throw Error('Image reader unavailable; reload the page.');
+      const response=await fetch('./Wildcats_83_Embedded_Images.zip',{cache:'no-cache'});
+      if(!response.ok)throw Error('Image package could not be downloaded ('+response.status+').');
+      const zip=await JSZip.loadAsync(await response.arrayBuffer());
+      const paths=Object.keys(zip.files).filter(n=>/^images\/.*\.(jpe?g|png)$/i.test(n)).sort();
+      if(!paths.length)throw Error('No diagram images found in the uploaded ZIP.');
+      for(const path of paths){
+        const bytes=await zip.file(path).async('blob');
+        urls.push(URL.createObjectURL(new Blob([bytes],{type:'image/jpeg'})));
+        const option=document.createElement('option');option.value=String(urls.length-1);option.textContent=String(urls.length).padStart(2,'0');select.appendChild(option);
+      }
+      show(0);
+    }catch(err){status.textContent='Could not load the hosted diagrams: '+err.message;}
+  }
+  load();
+  window.addEventListener('pagehide',()=>urls.forEach(URL.revokeObjectURL),{once:true});
+})();
+</script>
 </body>
 </html>
