@@ -209,7 +209,7 @@
       <p class="tiny">Team-wide syncing across different phones/iPads requires the shared online leaderboard backend. This first version ranks every profile saved on this device.</p>
     </section>
 
-    <div class="row" style="margin:12px 0"><button type="button" id="openDiagrams" class="btn ghost">📋 View Play Diagrams</button></div>
+    <div class="row" style="margin:12px 0"><button type="button" id="openDiagrams" class="btn ghost">📋 View Play Diagrams</button><button type="button" id="openDiagramChallenge" class="btn gold">🏈 Diagram Challenge</button></div>
     <section class="card hidden" id="playbookDiagrams" style="margin:18px 0;border:2px solid #f3c64e">
       <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap">
         <h2>🏈 2026 Wildcats Play Diagrams</h2>
@@ -224,6 +224,23 @@
       </div>
       <img id="autoDiagram" alt="2026 Wildcats playbook diagram" style="display:none;width:100%;max-height:680px;object-fit:contain;background:white;border-radius:12px;margin-top:12px" />
       <p class="tiny">Frames from the verified playbook video; multiple frames can represent the same play. Position assignments are not automatically inferred from an image.</p>
+    </section>
+    <section id="diagramChallenge" class="card hidden" style="margin:16px 0;border:2px solid #e2b73d">
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;align-items:center"><h2>🏈 Diagram Recognition Challenge</h2><button type="button" id="diagramExit" class="btn ghost">⌂ Main Menu</button></div>
+      <p>Look at the real coach-provided play, identify its name, then reveal the original diagram to check yourself. This first version is self-graded while play names and position assignments are being mapped.</p>
+      <p id="diagramChallengeStatus" role="status">Preparing diagrams…</p>
+      <div style="position:relative;overflow:hidden;border-radius:12px;background:#fff;margin:12px 0">
+        <img id="diagramQuizImage" alt="Playbook diagram for recognition" style="display:none;width:100%;max-height:520px;object-fit:contain" />
+        <div id="diagramNameMask" style="position:absolute;left:5%;right:5%;top:0;height:17%;background:#fff;border-bottom:2px solid #e1e5e7;display:none;align-items:center;justify-content:center;color:#123f2b;font-weight:800">PLAY NAME HIDDEN — WHAT PLAY IS THIS?</div>
+      </div>
+      <label for="diagramGuess">Your guess — what play is this?</label>
+      <input id="diagramGuess" type="text" autocomplete="off" placeholder="Enter the play name from memory" />
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button id="diagramReveal" type="button" class="btn gold">Reveal Original Diagram</button>
+        <button id="diagramCorrect" type="button" class="btn ghost" disabled>I Got It Right (+10 XP)</button>
+        <button id="diagramNext" type="button" class="btn ghost">Next Diagram ▶</button>
+      </div>
+      <p id="diagramResult" aria-live="polite" class="tiny">Study the diagram before revealing the play name.</p>
     </section>
     <section id="game" class="hidden">
       <div class="grid">
@@ -676,6 +693,45 @@ renderLeaderboard();
   const select=document.getElementById('autoSelect');
   const img=document.getElementById('autoDiagram');
   let urls=[];
+  const challenge=document.getElementById('diagramChallenge');
+  const quizImg=document.getElementById('diagramQuizImage');
+  const quizMask=document.getElementById('diagramNameMask');
+  const challengeStatus=document.getElementById('diagramChallengeStatus');
+  const guess=document.getElementById('diagramGuess');
+  const reveal=document.getElementById('diagramReveal');
+  const correct=document.getElementById('diagramCorrect');
+  const result=document.getElementById('diagramResult');
+  let challengeFrames=[],challengeIndex=-1,awarded=false;
+  function nextDiagram(){
+    if(!challengeFrames.length){challengeStatus.textContent='Still loading diagrams…';return;}
+    challengeIndex=(challengeIndex+1)%challengeFrames.length;
+    quizImg.src=urls[challengeFrames[challengeIndex]];quizImg.style.display='block';
+    quizMask.style.display='flex';guess.value='';correct.disabled=true;awarded=false;
+    result.textContent='Look at the formation and routes. Name the play, then reveal the original.';
+    challengeStatus.textContent='Diagram '+(challengeIndex+1)+' of '+challengeFrames.length;
+  }
+  document.getElementById('openDiagramChallenge').addEventListener('click',()=>{
+    challenge.classList.remove('hidden');document.getElementById('playbookDiagrams').classList.add('hidden');
+    if(challengeIndex<0)nextDiagram();challenge.scrollIntoView({behavior:'smooth'});
+  });
+  document.getElementById('diagramExit').addEventListener('click',()=>{
+    challenge.classList.add('hidden');document.getElementById('setup').scrollIntoView({behavior:'smooth'});
+  });
+  reveal.addEventListener('click',()=>{
+    quizMask.style.display='none';correct.disabled=awarded;
+    result.textContent='Compare your guess to the original title. Award points only if you matched the coach-issued name.';
+  });
+  correct.addEventListener('click',()=>{
+    if(awarded||quizMask.style.display!=='none')return;
+    awarded=true;correct.disabled=true;
+    const name=document.getElementById('playerName').value.trim();
+    if(name&&typeof loadProfile==='function'){
+      const prior=loadProfile(name);
+      if(prior){prior.xp=(prior.xp||0)+10;localStorage.setItem('jpp_profile_'+name.toLowerCase().replace(/[^a-z0-9]+/g,'_'),JSON.stringify(prior));if(typeof state!=='undefined'&&state.name.toLowerCase()===name.toLowerCase()){state.xp=prior.xp;}if(typeof renderLeaderboard==='function')renderLeaderboard();}
+    }
+    result.textContent='Correct! +10 XP saved to your existing player profile (if already created).';
+  });
+  document.getElementById('diagramNext').addEventListener('click',nextDiagram);
   function show(i){
     if(!urls.length)return;
     const n=(i+urls.length)%urls.length;
@@ -716,6 +772,10 @@ renderLeaderboard();
         select.appendChild(option);
       }
       show(0);
+      // Skip title, STOP, summary, and blank video frames. These are sampled images, not a validated unique-play catalog.
+      challengeFrames=urls.map((_,i)=>i).filter(i=>i>=5&&i<=71);
+      for(let i=challengeFrames.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[challengeFrames[i],challengeFrames[j]]=[challengeFrames[j],challengeFrames[i]];}
+      challengeStatus.textContent=challengeFrames.length+' playbook frames ready. Names are revealed from the original image.';
     }catch(err){status.textContent='Unable to display the images: '+err.message;}
   }
   window.addEventListener('pagehide',()=>urls.forEach(url=>URL.revokeObjectURL(url)),{once:true});
