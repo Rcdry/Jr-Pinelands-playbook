@@ -167,6 +167,15 @@
         <button type="button" id="videoForward">5 sec ▶</button>
       </div>
       <p><small>The video is not yet hosted on the website, so it must be selected from your device for this study mode. The existing play quiz remains available below. Diagram-by-diagram position grading will be added only after each assignment is mapped accurately.</small></p>
+<div id="playbookGallery" style="margin-top:18px;padding:15px;border-radius:14px;background:#f1f7f2;color:#102018">
+<h3>📸 Playbook Diagram Gallery</h3>
+<p>Choose the latest video once to extract diagram images automatically. The gallery is saved on this device for future visits.</p>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+<button type="button" id="galleryPrev">◀ Previous</button><strong id="galleryCount">No images saved yet</strong><button type="button" id="galleryNext">Next ▶</button>
+<button type="button" id="galleryExtract">Extract images from loaded video</button></div>
+<img id="galleryImage" alt="Extracted latest playbook diagram" style="display:none;width:100%;max-height:650px;object-fit:contain;background:#fff;border-radius:10px;margin-top:12px">
+<p id="galleryStatus" aria-live="polite">Load the video above to build the gallery. Extraction happens entirely in your browser.</p>
+</div>
     </section>
     <section id="setup" class="grid">
       <div class="card">
@@ -662,6 +671,37 @@ renderLeaderboard();
  document.getElementById('videoBack').addEventListener('click',()=>{if(video.src)video.currentTime=Math.max(0,video.currentTime-5)});
  document.getElementById('videoForward').addEventListener('click',()=>{if(video.src)video.currentTime=Math.min(video.duration||Infinity,video.currentTime+5)});
  document.getElementById('videoPause').addEventListener('click',()=>{if(video.src){if(video.paused)video.play();else video.pause()}});
+})();
+
+(function(){
+const image=document.getElementById('galleryImage'),count=document.getElementById('galleryCount'),status=document.getElementById('galleryStatus');
+const video=document.getElementById('playbookVideoPlayer');let frames=[],at=0;
+function draw(){count.textContent=frames.length?'Diagram '+(at+1)+' of '+frames.length:'No images saved yet';image.style.display=frames.length?'block':'none';if(frames.length)image.src=frames[at];}
+function db(){return new Promise((resolve,reject)=>{const r=indexedDB.open('wildcats-playbook-frames',1);r.onupgradeneeded=()=>r.result.createObjectStore('gallery');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+async function store(v){const d=await db();return new Promise((resolve,reject)=>{const t=d.transaction('gallery','readwrite');t.objectStore('gallery').put(v,'latest2026');t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>reject(t.error)})}
+async function restore(){try{const d=await db();const value=await new Promise((resolve,reject)=>{const t=d.transaction('gallery');const r=t.objectStore('gallery').get('latest2026');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});d.close();if(value?.length){frames=value;draw();status.textContent='Saved diagrams restored from this device.'}}catch(e){status.textContent='Local gallery storage is unavailable in this browser.'}}
+document.getElementById('galleryPrev').onclick=()=>{if(frames.length){at=(at-1+frames.length)%frames.length;draw()}};
+document.getElementById('galleryNext').onclick=()=>{if(frames.length){at=(at+1)%frames.length;draw()}};
+document.getElementById('galleryExtract').onclick=async()=>{
+ if(!video.src){status.textContent='Choose the latest MP4 in the video player above first.';return;}
+ const btn=document.getElementById('galleryExtract');btn.disabled=true;frames=[];at=0;
+ const temp=document.createElement('video');temp.muted=true;temp.preload='auto';temp.playsInline=true;temp.src=video.src;
+ try{
+ await new Promise((resolve,reject)=>{temp.onloadedmetadata=resolve;temp.onerror=()=>reject(Error('Unable to load video'));if(temp.readyState>=1)resolve()});
+ const canvas=document.createElement('canvas');canvas.width=640;canvas.height=360;const ctx=canvas.getContext('2d');
+ const n=Math.min(83,Math.max(1,Math.floor(temp.duration/1.35)));
+ for(let i=0;i<n;i++){
+  const t=Math.min(temp.duration-.1,(i+.5)*temp.duration/n);
+  await new Promise((resolve,reject)=>{temp.onseeked=resolve;temp.onerror=()=>reject(Error('Video seek failed'));temp.currentTime=t;});
+  ctx.drawImage(temp,0,0,canvas.width,canvas.height);
+  frames.push(canvas.toDataURL('image/jpeg',.65));
+  if(i%5===0){status.textContent='Extracting '+(i+1)+' / '+n+' frames…';draw()}
+ }
+ await store(frames);draw();status.textContent='Saved '+frames.length+' diagram frames on this device. Use Previous/Next to study. Frames may repeat; they are not counted as unique plays.';
+ }catch(e){status.textContent='Could not extract the images: '+e.message}
+ finally{temp.removeAttribute('src');temp.load();btn.disabled=false;}
+};
+restore();
 })();
 </script>
 </body>
